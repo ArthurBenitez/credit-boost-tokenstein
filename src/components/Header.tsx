@@ -5,16 +5,18 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coins, LogIn, LogOut, UserPlus, CreditCard } from 'lucide-react';
+import { Coins, LogIn, LogOut, UserPlus, CreditCard, Trophy, Package } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import { PaymentModal } from './PaymentModal';
+import { PaymentMockModal } from './PaymentMockModal';
 import { useToast } from '@/hooks/use-toast';
 
 export const Header: React.FC = () => {
-  const { user, setUser } = useUser();
+  const { user, setUser, exchangeScore } = useUser();
   const { toast } = useToast();
   const [loginOpen, setLoginOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [exchangeOpen, setExchangeOpen] = useState(false);
+  const [scoreToExchange, setScoreToExchange] = useState('');
   const [loginData, setLoginData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
 
@@ -35,6 +37,7 @@ export const Header: React.FC = () => {
       cpf: loginData.cpf,
       cellphone: loginData.cellphone,
       credits: 10, // Créditos iniciais
+      score: 0,
       tokens: []
     };
 
@@ -63,6 +66,7 @@ export const Header: React.FC = () => {
       cpf: registerData.cpf,
       cellphone: registerData.cellphone,
       credits: 20, // Mais créditos para registro
+      score: 0,
       tokens: []
     };
 
@@ -72,6 +76,34 @@ export const Header: React.FC = () => {
       title: "Conta criada!",
       description: "Você ganhou 20 créditos de boas-vindas!",
     });
+  };
+
+  const handleExchangeScore = () => {
+    const amount = parseInt(scoreToExchange);
+    if (!amount || amount < 1) {
+      toast({
+        title: "Erro",
+        description: "Digite uma quantidade válida de pontos",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (exchangeScore(amount)) {
+      const creditsGained = Math.floor(amount * 0.5);
+      toast({
+        title: "Troca realizada!",
+        description: `${amount} pontos trocados por ${creditsGained} créditos`,
+      });
+      setExchangeOpen(false);
+      setScoreToExchange('');
+    } else {
+      toast({
+        title: "Erro",
+        description: "Pontos insuficientes",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -98,22 +130,82 @@ export const Header: React.FC = () => {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                <div className="flex items-center space-x-2">
-                  <Coins className="h-5 w-5 text-primary" />
-                  <Badge variant="outline" className="text-primary border-primary">
-                    {user.credits} CR
-                  </Badge>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Coins className="h-5 w-5 text-primary" />
+                    <Badge variant="outline" className="text-primary border-primary">
+                      {user.credits} CR
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Trophy className="h-5 w-5 text-warning" />
+                    <Badge variant="outline" className="text-warning border-warning">
+                      {user.score || 0} PTS
+                    </Badge>
+                  </div>
                 </div>
                 
-                <Button
-                  onClick={() => setPaymentOpen(true)}
-                  variant="outline"
-                  size="sm"
-                  className="border-primary text-primary hover:bg-primary hover:text-white"
-                >
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Comprar Créditos
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => setPaymentOpen(true)}
+                    variant="outline"
+                    size="sm"
+                    className="border-primary text-primary hover:bg-primary hover:text-white"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Comprar
+                  </Button>
+
+                  <Dialog open={exchangeOpen} onOpenChange={setExchangeOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-warning text-warning hover:bg-warning hover:text-white"
+                        disabled={!user.score || user.score < 1}
+                      >
+                        <Trophy className="h-4 w-4 mr-2" />
+                        Trocar
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px] bg-card border-border">
+                      <DialogHeader>
+                        <DialogTitle className="text-center bg-gradient-primary bg-clip-text text-transparent">
+                          Trocar Pontos
+                        </DialogTitle>
+                        <DialogDescription className="text-center">
+                          1 ponto = 0,5 créditos
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="score-amount">Quantidade de pontos</Label>
+                          <Input
+                            id="score-amount"
+                            type="number"
+                            min="1"
+                            max={user.score || 0}
+                            value={scoreToExchange}
+                            onChange={(e) => setScoreToExchange(e.target.value)}
+                            placeholder="Digite a quantidade"
+                            className="bg-background border-border"
+                          />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Você receberá {scoreToExchange ? Math.floor(parseInt(scoreToExchange) * 0.5) : 0} créditos
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={handleExchangeScore}
+                          className="w-full bg-gradient-primary hover:opacity-90"
+                          disabled={!scoreToExchange || parseInt(scoreToExchange) < 1}
+                        >
+                          Trocar Pontos
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
 
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">Olá, {user.name}</span>
@@ -225,7 +317,7 @@ export const Header: React.FC = () => {
         </div>
       </header>
 
-      <PaymentModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
+      <PaymentMockModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
     </>
   );
 };

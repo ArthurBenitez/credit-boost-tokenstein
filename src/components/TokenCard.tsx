@@ -23,7 +23,7 @@ const getRarityColor = (rarity: string) => {
 };
 
 export const TokenCard: React.FC<TokenCardProps> = ({ token, onBuy }) => {
-  const { user, spendCredits, buyToken } = useUser();
+  const { user, spendCredits, buyToken, getAllUsers } = useUser();
   const { toast } = useToast();
 
   const handleBuy = () => {
@@ -46,10 +46,24 @@ export const TokenCard: React.FC<TokenCardProps> = ({ token, onBuy }) => {
     }
 
     if (spendCredits(token.price)) {
-      buyToken(token.id, 1);
+      const allUsers = getAllUsers();
+      const usersWithToken = allUsers.filter(u => 
+        u.id !== user.id && 
+        u.tokens.some(t => t.tokenId === token.id && t.quantity > 0)
+      );
+      
+      let stealMessage = "";
+      if (usersWithToken.length > 0) {
+        const randomUser = usersWithToken[Math.floor(Math.random() * usersWithToken.length)];
+        stealMessage = ` ${randomUser.name} perdeu 1 token e ganhou ${token.price} pontos!`;
+      }
+      
+      buyToken(token.id, 1, token.price);
+      const scoreGained = Math.floor(token.price * 1.25);
+      
       toast({
         title: "Token comprado!",
-        description: `Você comprou 1x ${token.name} por ${token.price} créditos.`,
+        description: `Você comprou 1x ${token.name} por ${token.price} créditos e ganhou ${scoreGained} pontos!${stealMessage}`,
       });
       onBuy?.(token);
     }

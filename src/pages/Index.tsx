@@ -5,6 +5,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { TokenCard } from '@/components/TokenCard';
 import { PortfolioSection } from '@/components/PortfolioSection';
 import { ReferralSection } from '@/components/ReferralSection';
+import { TokenInventory } from '@/components/TokenInventory';
 import { tokens } from '@/data/tokens';
 
 const Index = () => {
@@ -14,6 +15,13 @@ const Index = () => {
         <Header />
         
         <HeroSection />
+        
+        {/* Token Inventory Section */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto">
+            <TokenInventory />
+          </div>
+        </section>
         
         {/* Tokens Section */}
         <section id="tokens-section" className="py-20 px-4">

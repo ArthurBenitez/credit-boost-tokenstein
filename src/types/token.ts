@@ -15,6 +15,7 @@ export interface User {
   cpf?: string;
   cellphone?: string;
   credits: number;
+  score: number;
   tokens: { tokenId: number; quantity: number }[];
 }
 
