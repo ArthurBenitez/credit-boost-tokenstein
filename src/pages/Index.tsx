@@ -3,6 +3,8 @@ import { UserProvider } from '@/contexts/UserContext';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { TokenCard } from '@/components/TokenCard';
+import { PortfolioSection } from '@/components/PortfolioSection';
+import { ReferralSection } from '@/components/ReferralSection';
 import { tokens } from '@/data/tokens';
 
 const Index = () => {
@@ -35,6 +37,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* Portfolio Section */}
+        <PortfolioSection />
         
         {/* How it works */}
         <section className="py-20 px-4 bg-gradient-card">
@@ -82,6 +87,9 @@ const Index = () => {
             </div>
           </div>
         </section>
+        
+        {/* Referral Section */}
+        <ReferralSection />
         
         {/* Footer */}
         <footer className="py-12 px-4 border-t border-border">
