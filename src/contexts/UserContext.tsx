@@ -8,7 +8,7 @@ interface UserContextType {
   spendCredits: (amount: number) => boolean;
   buyToken: (tokenId: number, quantity: number, price: number) => boolean;
   addScore: (amount: number) => void;
-  exchangeScore: (scoreAmount: number) => boolean;
+  exchangeScore: (scoreAmount: number) => Promise<boolean>;
   getAllUsers: () => User[];
   updateUser: (updatedUser: User) => void;
 }
@@ -99,19 +99,43 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const exchangeScore = (scoreAmount: number): boolean => {
-    if (user && (user.score || 0) >= scoreAmount) {
-      const creditsToAdd = Math.floor(scoreAmount * 0.5); // 1 score = 0.5 créditos
+  const exchangeScore = async (scoreAmount: number): Promise<boolean> => {
+    if (!user || (user.score || 0) < scoreAmount) {
+      return false;
+    }
+
+    try {
+      // Simular pagamento via AbacatePay (substitua por implementação real)
+      console.log(`Processando pagamento de R$ ${(scoreAmount * 0.5).toFixed(2)} para ${user.email}`);
+      
+      // Para demonstração, simulamos o sucesso do pagamento
+      // Em produção, você faria:
+      // const payoutResult = await AbacatePayService.sendPayout({
+      //   amount: scoreAmount * 50, // 50 centavos por ponto
+      //   customer: {
+      //     name: user.name,
+      //     email: user.email,
+      //     cellphone: user.phone || "",
+      //     taxId: user.taxId || "",
+      //     account: user.bankAccount
+      //   },
+      //   description: `Resgate de ${scoreAmount} pontos`
+      // });
+
+      // Apenas remover os pontos do usuário
       const updatedUser = { 
         ...user, 
-        score: (user.score || 0) - scoreAmount,
-        credits: user.credits + creditsToAdd
+        score: (user.score || 0) - scoreAmount
       };
       setUser(updatedUser);
       updateUser(updatedUser);
+      
+      console.log(`Pagamento processado com sucesso! R$ ${(scoreAmount * 0.5).toFixed(2)} será transferido para sua conta.`);
       return true;
+    } catch (error) {
+      console.error('Erro ao processar pagamento:', error);
+      return false;
     }
-    return false;
   };
 
   const buyToken = (tokenId: number, quantity: number, price: number): boolean => {

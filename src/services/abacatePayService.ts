@@ -1,7 +1,7 @@
 import { PaymentData } from '@/types/token';
 
 const API_BASE_URL = 'https://api.abacatepay.com/v1';
-const BEARER_TOKEN = 'YOUR_ABACATE_PAY_TOKEN'; // Em produção, isso deve vir de variáveis de ambiente
+const BEARER_TOKEN = 'YOUR_ABACATE_PAY_TOKEN'; // Substitua pelo seu token real da AbacatePay
 
 export class AbacatePayService {
   private static headers = {
@@ -77,6 +77,40 @@ export class AbacatePayService {
       return await response.json();
     } catch (error) {
       console.error('Error checking payment status:', error);
+      throw error;
+    }
+  }
+
+  static async sendPayout(payoutData: {
+    amount: number;
+    customer: {
+      name: string;
+      email: string;
+      cellphone: string;
+      taxId: string;
+      account: {
+        bank: string;
+        branch: string;
+        account: string;
+        type: string;
+      };
+    };
+    description: string;
+  }) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/payout/create`, {
+        method: 'POST',
+        headers: this.headers,
+        body: JSON.stringify(payoutData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error sending payout:', error);
       throw error;
     }
   }

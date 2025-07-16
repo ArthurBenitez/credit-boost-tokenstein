@@ -78,7 +78,7 @@ export const Header: React.FC = () => {
     });
   };
 
-  const handleExchangeScore = () => {
+  const handleExchangeScore = async () => {
     const amount = parseInt(scoreToExchange);
     if (!amount || amount < 1) {
       toast({
@@ -89,18 +89,19 @@ export const Header: React.FC = () => {
       return;
     }
 
-    if (exchangeScore(amount)) {
-      const creditsGained = Math.floor(amount * 0.5);
+    const success = await exchangeScore(amount);
+    if (success) {
+      const paymentValue = (amount * 0.5).toFixed(2);
       toast({
-        title: "Troca realizada!",
-        description: `${amount} pontos trocados por ${creditsGained} créditos`,
+        title: "Resgate processado!",
+        description: `${amount} pontos resgatados. R$ ${paymentValue} será transferido para sua conta.`,
       });
       setExchangeOpen(false);
       setScoreToExchange('');
     } else {
       toast({
         title: "Erro",
-        description: "Pontos insuficientes",
+        description: "Pontos insuficientes ou erro no processamento",
         variant: "destructive"
       });
     }
@@ -192,7 +193,7 @@ export const Header: React.FC = () => {
                             className="bg-background border-border"
                           />
                           <p className="text-sm text-muted-foreground mt-1">
-                            Você receberá {scoreToExchange ? Math.floor(parseInt(scoreToExchange) * 0.5) : 0} créditos
+                            Você receberá R$ {scoreToExchange ? (parseInt(scoreToExchange) * 0.5).toFixed(2) : '0,00'} em sua conta
                           </p>
                         </div>
                         <Button 
