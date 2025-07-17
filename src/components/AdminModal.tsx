@@ -96,12 +96,14 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] bg-card border-border">
+      <DialogContent className="max-w-4xl max-h-[90vh] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-center bg-gradient-primary bg-clip-text text-transparent text-2xl">
             🔐 PAINEL ADMINISTRATIVO
           </DialogTitle>
         </DialogHeader>
+
+        <ScrollArea className="max-h-[75vh] pr-4">
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Solicitações de Pagamento */}
@@ -233,6 +235,7 @@ export const AdminModal: React.FC<AdminModalProps> = ({ isOpen, onClose }) => {
             </CardContent>
           </Card>
         </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

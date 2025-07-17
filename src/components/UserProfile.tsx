@@ -71,7 +71,7 @@ export const UserProfile: React.FC = () => {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[80vh] bg-card border-border">
+      <DialogContent className="max-w-2xl max-h-[90vh] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="text-center bg-gradient-primary bg-clip-text text-transparent">
             Meu Perfil
@@ -80,6 +80,8 @@ export const UserProfile: React.FC = () => {
             Gerencie suas informações pessoais e acompanhe seu portfólio
           </DialogDescription>
         </DialogHeader>
+
+        <ScrollArea className="max-h-[75vh] pr-4">
 
         <div className="space-y-6">
           {/* Resumo da Conta */}
@@ -312,6 +314,7 @@ export const UserProfile: React.FC = () => {
             </Card>
           )}
         </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
