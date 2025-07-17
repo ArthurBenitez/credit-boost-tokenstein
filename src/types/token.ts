@@ -14,6 +14,7 @@ export interface User {
   email: string;
   cpf?: string;
   cellphone?: string;
+  pixKey?: string;
   credits: number;
   score: number;
   tokens: { tokenId: number; quantity: number }[];

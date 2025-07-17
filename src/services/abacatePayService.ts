@@ -1,7 +1,7 @@
 import { PaymentData } from '@/types/token';
 
 const API_BASE_URL = 'https://api.abacatepay.com/v1';
-const BEARER_TOKEN = 'YOUR_ABACATE_PAY_TOKEN'; // Substitua pelo seu token real da AbacatePay
+const BEARER_TOKEN = 'abc_dev_4xdjbKn4xrxjzKHN2pDqp63s';
 
 export class AbacatePayService {
   private static headers = {

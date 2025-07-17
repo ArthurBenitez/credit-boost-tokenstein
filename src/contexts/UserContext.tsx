@@ -104,25 +104,31 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    try {
-      // Simular pagamento via AbacatePay (substitua por implementação real)
-      console.log(`Processando pagamento de R$ ${(scoreAmount * 0.5).toFixed(2)} para ${user.email}`);
-      
-      // Para demonstração, simulamos o sucesso do pagamento
-      // Em produção, você faria:
-      // const payoutResult = await AbacatePayService.sendPayout({
-      //   amount: scoreAmount * 50, // 50 centavos por ponto
-      //   customer: {
-      //     name: user.name,
-      //     email: user.email,
-      //     cellphone: user.phone || "",
-      //     taxId: user.taxId || "",
-      //     account: user.bankAccount
-      //   },
-      //   description: `Resgate de ${scoreAmount} pontos`
-      // });
+    if (!user.pixKey) {
+      console.error('Usuário não possui chave PIX cadastrada');
+      return false;
+    }
 
-      // Apenas remover os pontos do usuário
+    try {
+      // Criar solicitação de pagamento
+      const paymentRequest = {
+        id: Date.now().toString(),
+        userId: user.id,
+        userName: user.name,
+        userEmail: user.email,
+        pixKey: user.pixKey,
+        amount: scoreAmount * 0.5, // 50 centavos por ponto
+        scoreAmount: scoreAmount,
+        timestamp: new Date().toISOString(),
+        status: 'pending' as const
+      };
+
+      // Salvar solicitação
+      const existingRequests = JSON.parse(localStorage.getItem('tokenstein_payment_requests') || '[]');
+      existingRequests.push(paymentRequest);
+      localStorage.setItem('tokenstein_payment_requests', JSON.stringify(existingRequests));
+
+      // Remover os pontos do usuário
       const updatedUser = { 
         ...user, 
         score: (user.score || 0) - scoreAmount
@@ -130,10 +136,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(updatedUser);
       updateUser(updatedUser);
       
-      console.log(`Pagamento processado com sucesso! R$ ${(scoreAmount * 0.5).toFixed(2)} será transferido para sua conta.`);
+      console.log(`Solicitação de pagamento criada: R$ ${(scoreAmount * 0.5).toFixed(2)} para ${user.pixKey}`);
       return true;
     } catch (error) {
-      console.error('Erro ao processar pagamento:', error);
+      console.error('Erro ao processar solicitação:', error);
       return false;
     }
   };

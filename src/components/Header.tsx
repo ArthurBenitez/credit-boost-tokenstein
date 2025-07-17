@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Coins, LogIn, LogOut, UserPlus, CreditCard, Trophy, Package } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { PaymentMockModal } from './PaymentMockModal';
+import { UserProfile } from './UserProfile';
+import { AdminModal } from './AdminModal';
 import { useToast } from '@/hooks/use-toast';
 
 export const Header: React.FC = () => {
@@ -16,9 +18,31 @@ export const Header: React.FC = () => {
   const [loginOpen, setLoginOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [exchangeOpen, setExchangeOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [scoreToExchange, setScoreToExchange] = useState('');
   const [loginData, setLoginData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
   const [registerData, setRegisterData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
+  const [tKeyCount, setTKeyCount] = useState(0);
+
+  // Admin access logic
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 't' && user?.email === 'tesla@gmail.com') {
+        setTKeyCount(prev => prev + 1);
+        setTimeout(() => setTKeyCount(0), 2000); // Reset after 2 seconds
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [user]);
+
+  useEffect(() => {
+    if (tKeyCount >= 3 && user?.email === 'tesla@gmail.com') {
+      setAdminOpen(true);
+      setTKeyCount(0);
+    }
+  }, [tKeyCount, user]);
 
   const handleLogin = () => {
     if (!loginData.email) {
@@ -89,19 +113,28 @@ export const Header: React.FC = () => {
       return;
     }
 
+    if (!user?.pixKey) {
+      toast({
+        title: "Chave PIX necessária",
+        description: "Cadastre sua chave PIX no perfil antes de resgatar pontos",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const success = await exchangeScore(amount);
     if (success) {
       const paymentValue = (amount * 0.5).toFixed(2);
       toast({
-        title: "Resgate processado!",
-        description: `${amount} pontos resgatados. R$ ${paymentValue} será transferido para sua conta.`,
+        title: "Solicitação enviada!",
+        description: `Solicitação de R$ ${paymentValue} criada. Você receberá uma notificação quando o pagamento for processado.`,
       });
       setExchangeOpen(false);
       setScoreToExchange('');
     } else {
       toast({
         title: "Erro",
-        description: "Pontos insuficientes ou erro no processamento",
+        description: "Pontos insuficientes, chave PIX não cadastrada ou erro no processamento",
         variant: "destructive"
       });
     }
@@ -175,9 +208,9 @@ export const Header: React.FC = () => {
                         <DialogTitle className="text-center bg-gradient-primary bg-clip-text text-transparent">
                           Trocar Pontos
                         </DialogTitle>
-                        <DialogDescription className="text-center">
-                          1 ponto = 0,5 créditos
-                        </DialogDescription>
+                         <DialogDescription className="text-center">
+                           1 ponto = R$ 0,50 (transferência PIX)
+                         </DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
@@ -210,6 +243,7 @@ export const Header: React.FC = () => {
 
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">Olá, {user.name}</span>
+                  <UserProfile />
                   <Button onClick={handleLogout} variant="ghost" size="sm">
                     <LogOut className="h-4 w-4" />
                   </Button>
@@ -319,6 +353,7 @@ export const Header: React.FC = () => {
       </header>
 
       <PaymentMockModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
+      <AdminModal isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </>
   );
 };
