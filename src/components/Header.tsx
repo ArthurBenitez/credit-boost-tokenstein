@@ -1,105 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Coins, LogIn, LogOut, UserPlus, CreditCard, Trophy, Package } from 'lucide-react';
-import { useUser } from '@/contexts/UserContext';
-import { PaymentMockModal } from './PaymentMockModal';
+import { Coins, LogOut, CreditCard, Trophy, Package } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 import { UserProfile } from './UserProfile';
+import { TokenInventory } from './TokenInventory';
+import { PaymentModal } from './PaymentModal';
 import { AdminModal } from './AdminModal';
-import { useToast } from '@/hooks/use-toast';
 
-export const Header: React.FC = () => {
-  const { user, setUser, exchangeScore } = useUser();
-  const { toast } = useToast();
-  const [loginOpen, setLoginOpen] = useState(false);
+const Header = () => {
+  const navigate = useNavigate();
+  const { user, loading, exchangeScore } = useUser();
+  const { signOut } = useAuth();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [inventoryOpen, setInventoryOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
-  const [exchangeOpen, setExchangeOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [exchangeOpen, setExchangeOpen] = useState(false);
   const [scoreToExchange, setScoreToExchange] = useState('');
-  const [loginData, setLoginData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
-  const [registerData, setRegisterData] = useState({ name: '', email: '', cpf: '', cellphone: '' });
-  const [tKeyCount, setTKeyCount] = useState(0);
+  const [tPressed, setTPressed] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Admin access logic
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 't' && user?.email === 'tesla@gmail.com') {
-        setTKeyCount(prev => prev + 1);
-        setTimeout(() => setTKeyCount(0), 2000); // Reset after 2 seconds
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [user]);
-
-  useEffect(() => {
-    if (tKeyCount >= 3 && user?.email === 'tesla@gmail.com') {
-      setAdminOpen(true);
-      setTKeyCount(0);
-    }
-  }, [tKeyCount, user]);
-
-  const handleLogin = () => {
-    if (!loginData.email) {
-      toast({
-        title: "Erro",
-        description: "Email é obrigatório",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name: loginData.name || 'Usuário',
-      email: loginData.email,
-      cpf: loginData.cpf,
-      cellphone: loginData.cellphone,
-      credits: 10, // Créditos iniciais
-      score: 0,
-      tokens: []
-    };
-
-    setUser(newUser);
-    setLoginOpen(false);
+  const handleLogout = async () => {
+    await signOut();
+    setIsAdmin(false);
     toast({
-      title: "Login realizado!",
-      description: "Você ganhou 10 créditos de boas-vindas!",
+      title: "Logout realizado!",
+      description: "Até logo!",
     });
-  };
-
-  const handleRegister = () => {
-    if (!registerData.name || !registerData.email) {
-      toast({
-        title: "Erro",
-        description: "Nome e email são obrigatórios",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newUser = {
-      id: Date.now().toString(),
-      name: registerData.name,
-      email: registerData.email,
-      cpf: registerData.cpf,
-      cellphone: registerData.cellphone,
-      credits: 20, // Mais créditos para registro
-      score: 0,
-      tokens: []
-    };
-
-    setUser(newUser);
-    setLoginOpen(false);
-    toast({
-      title: "Conta criada!",
-      description: "Você ganhou 20 créditos de boas-vindas!",
-    });
+    navigate('/auth');
   };
 
   const handleExchangeScore = async () => {
@@ -140,14 +75,6 @@ export const Header: React.FC = () => {
     }
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado com sucesso.",
-    });
-  };
-
   return (
     <>
       <header className="bg-background border-b border-border sticky top-0 z-50 backdrop-blur-md bg-opacity-90">
@@ -162,7 +89,9 @@ export const Header: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            {user ? (
+            {loading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            ) : user ? (
               <>
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
@@ -243,117 +172,47 @@ export const Header: React.FC = () => {
 
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">Olá, {user.name}</span>
-                  <UserProfile />
-                  <Button onClick={handleLogout} variant="ghost" size="sm">
-                    <LogOut className="h-4 w-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setProfileOpen(true)}
+                    className="text-sm"
+                  >
+                    {user.name}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setInventoryOpen(true)}
+                    className="text-sm"
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Inventário
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleLogout}
+                    className="text-sm"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
                   </Button>
                 </div>
               </>
-            ) : (
-              <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-gradient-primary hover:opacity-90">
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Login / Cadastro
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[400px] bg-card border-border">
-                  <DialogHeader>
-                    <DialogTitle className="text-center bg-gradient-primary bg-clip-text text-transparent">
-                      Acesse sua conta
-                    </DialogTitle>
-                    <DialogDescription className="text-center">
-                      Entre ou crie uma conta para começar a investir
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <Tabs defaultValue="login" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-muted">
-                      <TabsTrigger value="login">Login</TabsTrigger>
-                      <TabsTrigger value="register">Cadastro</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="login" className="space-y-4">
-                      <div>
-                        <Label htmlFor="login-email">Email</Label>
-                        <Input
-                          id="login-email"
-                          type="email"
-                          value={loginData.email}
-                          onChange={(e) => setLoginData(prev => ({ ...prev, email: e.target.value }))}
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="login-name">Nome (opcional)</Label>
-                        <Input
-                          id="login-name"
-                          value={loginData.name}
-                          onChange={(e) => setLoginData(prev => ({ ...prev, name: e.target.value }))}
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <Button onClick={handleLogin} className="w-full bg-gradient-primary hover:opacity-90">
-                        <LogIn className="h-4 w-4 mr-2" />
-                        Entrar (10 CR grátis)
-                      </Button>
-                    </TabsContent>
-
-                    <TabsContent value="register" className="space-y-4">
-                      <div>
-                        <Label htmlFor="register-name">Nome completo</Label>
-                        <Input
-                          id="register-name"
-                          value={registerData.name}
-                          onChange={(e) => setRegisterData(prev => ({ ...prev, name: e.target.value }))}
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="register-email">Email</Label>
-                        <Input
-                          id="register-email"
-                          type="email"
-                          value={registerData.email}
-                          onChange={(e) => setRegisterData(prev => ({ ...prev, email: e.target.value }))}
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="register-cellphone">Telefone (opcional)</Label>
-                        <Input
-                          id="register-cellphone"
-                          value={registerData.cellphone}
-                          onChange={(e) => setRegisterData(prev => ({ ...prev, cellphone: e.target.value }))}
-                          placeholder="(11) 99999-9999"
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="register-cpf">CPF (opcional)</Label>
-                        <Input
-                          id="register-cpf"
-                          value={registerData.cpf}
-                          onChange={(e) => setRegisterData(prev => ({ ...prev, cpf: e.target.value }))}
-                          placeholder="000.000.000-00"
-                          className="bg-background border-border"
-                        />
-                      </div>
-                      <Button onClick={handleRegister} className="w-full bg-gradient-primary hover:opacity-90">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Criar Conta (20 CR grátis)
-                      </Button>
-                    </TabsContent>
-                  </Tabs>
-                </DialogContent>
-              </Dialog>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
 
-      <PaymentMockModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
+      <UserProfile open={profileOpen} onOpenChange={setProfileOpen} />
+      <TokenInventory open={inventoryOpen} onOpenChange={setInventoryOpen} />
+      <PaymentModal open={paymentOpen} onOpenChange={setPaymentOpen} />
       <AdminModal isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </>
   );
 };
+
+export default Header;

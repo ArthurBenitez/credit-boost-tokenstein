@@ -1,6 +1,8 @@
 import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { UserProvider } from '@/contexts/UserContext';
-import { Header } from '@/components/Header';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import Header from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { TokenCard } from '@/components/TokenCard';
 import { PortfolioSection } from '@/components/PortfolioSection';
@@ -9,7 +11,24 @@ import { TokenInventory } from '@/components/TokenInventory';
 import { Button } from '@/components/ui/button';
 import { tokens } from '@/data/tokens';
 
-const Index = () => {
+const IndexContent = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
   return (
     <UserProvider>
       <div className="min-h-screen bg-background text-foreground">
@@ -255,7 +274,7 @@ const Index = () => {
               </button>
               
               <p className="text-sm text-muted-foreground mt-4">
-                🔒 Seus dados estão seguros | ⚡ Ativação instantânea | 💰 Primeiros 20 créditos grátis
+                🔒 Seus dados estão seguros | ⚡ Ativação instantânea | 💰 Primeiros 10 créditos grátis
               </p>
             </div>
           </div>
@@ -282,6 +301,14 @@ const Index = () => {
         </footer>
       </div>
     </UserProvider>
+  );
+};
+
+const Index = () => {
+  return (
+    <AuthProvider>
+      <IndexContent />
+    </AuthProvider>
   );
 };
 

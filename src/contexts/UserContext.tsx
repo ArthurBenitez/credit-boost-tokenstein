@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '@/types/token';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthContext';
 
 interface UserContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
-  addCredits: (amount: number) => void;
-  spendCredits: (amount: number) => boolean;
+  loading: boolean;
+  addCredits: (amount: number) => Promise<void>;
+  spendCredits: (amount: number) => Promise<boolean>;
   buyToken: (tokenId: number, quantity: number, price: number) => boolean;
   addScore: (amount: number) => void;
   exchangeScore: (scoreAmount: number) => Promise<boolean>;
@@ -24,24 +26,72 @@ export const useUser = () => {
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Load user from localStorage on mount
+  // Load user data from Supabase when auth user changes
   useEffect(() => {
-    const savedUser = localStorage.getItem('tokenstein_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    const loadUserData = async () => {
+      if (authUser) {
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', authUser.id)
+            .single();
 
-  // Save user to localStorage whenever user changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('tokenstein_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('tokenstein_user');
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            setUser(null);
+            setLoading(false);
+            return;
+          }
+
+          const { data: credits, error: creditsError } = await supabase
+            .from('user_credits')
+            .select('*')
+            .eq('user_id', authUser.id)
+            .single();
+
+          const { data: scores, error: scoresError } = await supabase
+            .from('user_scores')
+            .select('*')
+            .eq('user_id', authUser.id)
+            .single();
+
+          const { data: tokens, error: tokensError } = await supabase
+            .from('user_tokens')
+            .select('*')
+            .eq('user_id', authUser.id);
+
+          const userData: User = {
+            id: authUser.id,
+            name: profile.name || authUser.email!,
+            email: authUser.email!,
+            credits: credits?.credits || 0,
+            score: scores?.score || 0,
+            tokens: tokens?.map(t => ({ tokenId: parseInt(t.token_id), quantity: 1 })) || [],
+            cpf: '',
+            cellphone: '',
+            pixKey: ''
+          };
+
+          setUser(userData);
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    };
+
+    if (!authLoading) {
+      loadUserData();
     }
-  }, [user]);
+  }, [authUser, authLoading]);
 
   // Load all users from localStorage
   const getAllUsers = (): User[] => {
@@ -73,20 +123,36 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addCredits = (amount: number) => {
-    if (user) {
-      const updatedUser = { ...user, credits: user.credits + amount };
-      setUser(updatedUser);
-      updateUser(updatedUser);
+  const addCredits = async (amount: number) => {
+    if (user && authUser) {
+      const newCredits = user.credits + amount;
+      
+      const { error } = await supabase
+        .from('user_credits')
+        .update({ credits: newCredits })
+        .eq('user_id', authUser.id);
+
+      if (!error) {
+        const updatedUser = { ...user, credits: newCredits };
+        setUser(updatedUser);
+      }
     }
   };
 
-  const spendCredits = (amount: number): boolean => {
-    if (user && user.credits >= amount) {
-      const updatedUser = { ...user, credits: user.credits - amount };
-      setUser(updatedUser);
-      updateUser(updatedUser);
-      return true;
+  const spendCredits = async (amount: number): Promise<boolean> => {
+    if (user && authUser && user.credits >= amount) {
+      const newCredits = user.credits - amount;
+      
+      const { error } = await supabase
+        .from('user_credits')
+        .update({ credits: newCredits })
+        .eq('user_id', authUser.id);
+
+      if (!error) {
+        const updatedUser = { ...user, credits: newCredits };
+        setUser(updatedUser);
+        return true;
+      }
     }
     return false;
   };
@@ -201,7 +267,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <UserContext.Provider value={{
       user,
-      setUser,
+      loading,
       addCredits,
       spendCredits,
       buyToken,
