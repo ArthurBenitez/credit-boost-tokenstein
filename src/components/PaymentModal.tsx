@@ -27,6 +27,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
   });
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [checkingPayment, setCheckingPayment] = useState(false);
   
   const { user, addCredits } = useUser();
   const { toast } = useToast();
@@ -68,30 +69,38 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     }
   }, [paymentData, step, toast]);
 
-  // Check payment status
-  useEffect(() => {
-    if (paymentData && step === 'payment') {
-      const checkStatus = async () => {
-        try {
-          const response = await AbacatePayService.checkPaymentStatus(paymentData.id);
-          if (response.data.status === 'PAID') {
-            setStep('success');
-            const creditsToAdd = Math.floor(parseFloat(amount) * 1); // 1 real = 1 crédito
-            addCredits(creditsToAdd);
-            toast({
-              title: "Pagamento confirmado!",
-              description: `${creditsToAdd} créditos foram adicionados à sua conta.`,
-            });
-          }
-        } catch (error) {
-          console.error('Error checking payment status:', error);
-        }
-      };
-
-      const interval = setInterval(checkStatus, 3000);
-      return () => clearInterval(interval);
+  const handleCheckPayment = async () => {
+    if (!paymentData) return;
+    
+    setCheckingPayment(true);
+    try {
+      const response = await AbacatePayService.checkPaymentStatus(paymentData.id);
+      if (response.data.status === 'PAID') {
+        setStep('success');
+        const creditsToAdd = Math.floor(parseFloat(amount) * 1); // 1 real = 1 crédito
+        addCredits(creditsToAdd);
+        toast({
+          title: "Pagamento confirmado!",
+          description: `${creditsToAdd} créditos foram adicionados à sua conta.`,
+        });
+      } else {
+        toast({
+          title: "Pagamento não encontrado",
+          description: "O pagamento ainda não foi processado. Tente novamente em alguns instantes.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error);
+      toast({
+        title: "Erro ao verificar pagamento",
+        description: "Não foi possível verificar o status do pagamento. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setCheckingPayment(false);
     }
-  }, [paymentData, step, amount, addCredits, toast]);
+  };
 
   const handleCreatePayment = async () => {
     setLoading(true);
@@ -251,9 +260,27 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
               <p className="text-muted-foreground">Escaneie o QR Code com seu app bancário</p>
             </div>
 
-            <div className="flex items-center justify-center space-x-2 text-warning">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Aguardando pagamento...</span>
+            <div className="space-y-3">
+              <div className="flex items-center justify-center space-x-2 text-warning">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Aguardando pagamento...</span>
+              </div>
+              
+              <Button 
+                onClick={handleCheckPayment}
+                disabled={checkingPayment}
+                variant="outline"
+                className="w-full"
+              >
+                {checkingPayment ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Já efetuei o pagamento'
+                )}
+              </Button>
             </div>
           </div>
         )}

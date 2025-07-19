@@ -65,7 +65,7 @@ export class AbacatePayService {
 
   static async checkPaymentStatus(paymentId: string) {
     try {
-      const response = await fetch(`${API_BASE_URL}/pixQrCode/check/${paymentId}`, {
+      const response = await fetch(`${API_BASE_URL}/pixQrCode/check`, {
         method: 'GET',
         headers: this.headers
       });
