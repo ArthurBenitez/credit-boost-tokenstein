@@ -207,9 +207,9 @@ const Header = () => {
         </div>
       </header>
 
-      <UserProfile open={profileOpen} onOpenChange={setProfileOpen} />
-      <TokenInventory open={inventoryOpen} onOpenChange={setInventoryOpen} />
-      <PaymentModal open={paymentOpen} onOpenChange={setPaymentOpen} />
+      <UserProfile />
+      {inventoryOpen && <TokenInventory />}
+      <PaymentModal isOpen={paymentOpen} onClose={() => setPaymentOpen(false)} />
       <AdminModal isOpen={adminOpen} onClose={() => setAdminOpen(false)} />
     </>
   );
