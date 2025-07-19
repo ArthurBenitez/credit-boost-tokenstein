@@ -9,6 +9,7 @@ import { AbacatePayService } from '@/services/abacatePayService';
 import { PaymentData } from '@/types/token';
 import { useUser } from '@/contexts/UserContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -76,6 +77,19 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
     try {
       const response = await AbacatePayService.checkPaymentStatus(paymentData.id);
       if (response.data.status === 'PAID') {
+        // Update payment status in database
+        if (user) {
+          const { error: updateError } = await supabase
+            .from('payments')
+            .update({ status: 'paid' })
+            .eq('payment_id', paymentData.id)
+            .eq('user_id', user.id);
+            
+          if (updateError) {
+            console.error('Error updating payment status:', updateError);
+          }
+        }
+        
         setStep('success');
         const creditsToAdd = Math.floor(parseFloat(amount) * 1); // 1 real = 1 crédito
         addCredits(creditsToAdd);
@@ -115,6 +129,24 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
       });
 
       setPaymentData(payment);
+      
+      // Save payment to database
+      if (user) {
+        const { error: dbError } = await supabase
+          .from('payments')
+          .insert({
+            payment_id: payment.id,
+            user_id: user.id,
+            amount: parseFloat(amount),
+            credits: Math.floor(parseFloat(amount) * 1),
+            status: 'pending'
+          });
+          
+        if (dbError) {
+          console.error('Error saving payment to database:', dbError);
+        }
+      }
+      
       setStep('payment');
     } catch (error) {
       console.error('Error creating payment:', error);

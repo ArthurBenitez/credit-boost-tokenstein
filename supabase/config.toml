@@ -1,1 +1,4 @@
 project_id = "ymywyxdtffveerkknhcm"
+
+[functions.abacate-pay]
+verify_jwt = true
