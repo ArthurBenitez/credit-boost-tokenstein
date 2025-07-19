@@ -36,7 +36,7 @@ serve(async (req) => {
         break
         
       case 'checkPaymentStatus':
-        response = await fetch(`${API_BASE_URL}/pixQrCode/check`, {
+        response = await fetch(`${API_BASE_URL}/pixQrCode/check?id=${data.paymentId}`, {
           method: 'GET',
           headers
         })
