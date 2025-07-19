@@ -1,38 +1,7 @@
 import { PaymentData } from '@/types/token';
-
-const API_BASE_URL = 'https://api.abacatepay.com/v1';
-const BEARER_TOKEN = 'abc_dev_4xdjbKn4xrxjzKHN2pDqp63s';
+import { supabase } from '@/integrations/supabase/client';
 
 export class AbacatePayService {
-  private static headers = {
-    'Authorization': `Bearer ${BEARER_TOKEN}`,
-    'Content-Type': 'application/json'
-  };
-
-  static async createCustomer(customerData: {
-    name: string;
-    cellphone: string;
-    email: string;
-    taxId: string;
-  }) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/customer/create`, {
-        method: 'POST',
-        headers: this.headers,
-        body: JSON.stringify(customerData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating customer:', error);
-      throw error;
-    }
-  }
-
   static async createPixQrCode(paymentData: {
     amount: number;
     expiresIn: number;
@@ -45,18 +14,22 @@ export class AbacatePayService {
     };
   }): Promise<PaymentData> {
     try {
-      const response = await fetch(`${API_BASE_URL}/pixQrCode/create`, {
-        method: 'POST',
-        headers: this.headers,
-        body: JSON.stringify(paymentData)
+      const { data, error } = await supabase.functions.invoke('abacate-pay', {
+        body: {
+          action: 'createPixQrCode',
+          data: paymentData
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw new Error(`Supabase function error: ${error.message}`);
       }
 
-      const result = await response.json();
-      return result.data;
+      if (data.error) {
+        throw new Error(`API error: ${data.error}`);
+      }
+
+      return data.data;
     } catch (error) {
       console.error('Error creating PIX QR Code:', error);
       throw error;
@@ -65,52 +38,24 @@ export class AbacatePayService {
 
   static async checkPaymentStatus(paymentId: string) {
     try {
-      const response = await fetch(`${API_BASE_URL}/pixQrCode/check`, {
-        method: 'GET',
-        headers: this.headers
+      const { data, error } = await supabase.functions.invoke('abacate-pay', {
+        body: {
+          action: 'checkPaymentStatus',
+          data: { paymentId }
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw new Error(`Supabase function error: ${error.message}`);
       }
 
-      return await response.json();
+      if (data.error) {
+        throw new Error(`API error: ${data.error}`);
+      }
+
+      return data;
     } catch (error) {
       console.error('Error checking payment status:', error);
-      throw error;
-    }
-  }
-
-  static async sendPayout(payoutData: {
-    amount: number;
-    customer: {
-      name: string;
-      email: string;
-      cellphone: string;
-      taxId: string;
-      account: {
-        bank: string;
-        branch: string;
-        account: string;
-        type: string;
-      };
-    };
-    description: string;
-  }) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/payout/create`, {
-        method: 'POST',
-        headers: this.headers,
-        body: JSON.stringify(payoutData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error sending payout:', error);
       throw error;
     }
   }
