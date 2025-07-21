@@ -72,9 +72,8 @@ export const TokenInventory: React.FC = () => {
               </div>
             </CardHeader>
             <CardContent className="text-center pt-0">
-              <div className="flex items-center justify-center space-x-1 text-sm text-muted-foreground">
-                <Trophy className="h-4 w-4" />
-                <span>Valor: {token.price} CR</span>
+              <div className="text-2xl font-bold text-primary">
+                x{token.quantity}
               </div>
             </CardContent>
           </Card>

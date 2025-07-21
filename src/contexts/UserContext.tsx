@@ -221,7 +221,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const buyToken = async (tokenId: number, quantity: number, price: number): Promise<boolean> => {
     if (!user || !authUser) return false;
     
+    // Check if user has enough credits
+    if (user.credits < price) {
+      return false;
+    }
+    
     try {
+      // Spend credits first
+      const creditsSpent = await spendCredits(price);
+      if (!creditsSpent) {
+        return false;
+      }
+
       // Save token to database
       const { error: tokenError } = await supabase
         .from('user_tokens')
