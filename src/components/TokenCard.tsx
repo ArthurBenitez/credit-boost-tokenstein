@@ -26,7 +26,7 @@ export const TokenCard: React.FC<TokenCardProps> = ({ token, onBuy }) => {
   const { user, spendCredits, buyToken, getAllUsers } = useUser();
   const { toast } = useToast();
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (!user) {
       toast({
         title: "Login necessário",
@@ -45,7 +45,8 @@ export const TokenCard: React.FC<TokenCardProps> = ({ token, onBuy }) => {
       return;
     }
 
-    if (spendCredits(token.price)) {
+    const success = await spendCredits(token.price);
+    if (success) {
       const allUsers = getAllUsers();
       const usersWithToken = allUsers.filter(u => 
         u.id !== user.id && 
@@ -58,14 +59,16 @@ export const TokenCard: React.FC<TokenCardProps> = ({ token, onBuy }) => {
         stealMessage = ` ${randomUser.name} perdeu 1 token e ganhou ${token.price} pontos!`;
       }
       
-      buyToken(token.id, 1, token.price);
-      const scoreGained = Math.floor(token.price * 1.25);
-      
-      toast({
-        title: "Token comprado!",
-        description: `Você comprou 1x ${token.name} por ${token.price} créditos e ganhou ${scoreGained} pontos!${stealMessage}`,
-      });
-      onBuy?.(token);
+      const tokenBought = await buyToken(token.id, 1, token.price);
+      if (tokenBought) {
+        const scoreGained = Math.floor(token.price * 1.25);
+        
+        toast({
+          title: "Token comprado!",
+          description: `Você comprou 1x ${token.name} por ${token.price} créditos e ganhou ${scoreGained} pontos!${stealMessage}`,
+        });
+        onBuy?.(token);
+      }
     }
   };
 

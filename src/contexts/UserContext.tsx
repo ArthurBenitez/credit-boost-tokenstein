@@ -8,8 +8,8 @@ interface UserContextType {
   loading: boolean;
   addCredits: (amount: number) => Promise<void>;
   spendCredits: (amount: number) => Promise<boolean>;
-  buyToken: (tokenId: number, quantity: number, price: number) => boolean;
-  addScore: (amount: number) => void;
+  buyToken: (tokenId: number, quantity: number, price: number) => Promise<boolean>;
+  addScore: (amount: number) => Promise<void>;
   exchangeScore: (scoreAmount: number) => Promise<boolean>;
   getAllUsers: () => User[];
   updateUser: (updatedUser: User) => void;
@@ -157,11 +157,19 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return false;
   };
 
-  const addScore = (amount: number) => {
-    if (user) {
-      const updatedUser = { ...user, score: (user.score || 0) + amount };
-      setUser(updatedUser);
-      updateUser(updatedUser);
+  const addScore = async (amount: number) => {
+    if (user && authUser) {
+      const newScore = (user.score || 0) + amount;
+      
+      const { error } = await supabase
+        .from('user_scores')
+        .update({ score: newScore })
+        .eq('user_id', authUser.id);
+
+      if (!error) {
+        const updatedUser = { ...user, score: newScore };
+        setUser(updatedUser);
+      }
     }
   };
 
@@ -210,58 +218,79 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const buyToken = (tokenId: number, quantity: number, price: number): boolean => {
-    if (!user) return false;
+  const buyToken = async (tokenId: number, quantity: number, price: number): Promise<boolean> => {
+    if (!user || !authUser) return false;
     
-    // Add token to user's inventory
-    const existingToken = user.tokens.find(t => t.tokenId === tokenId);
-    if (existingToken) {
-      existingToken.quantity += quantity;
-    } else {
-      user.tokens.push({ tokenId, quantity });
-    }
-    
-    // Add score (25% bonus)
-    const scoreGained = Math.floor(price * 1.25);
-    const updatedUser = { 
-      ...user, 
-      score: (user.score || 0) + scoreGained,
-      tokens: [...user.tokens]
-    };
-    setUser(updatedUser);
-    updateUser(updatedUser);
+    try {
+      // Save token to database
+      const { error: tokenError } = await supabase
+        .from('user_tokens')
+        .insert({
+          user_id: authUser.id,
+          token_id: tokenId.toString(),
+          token_name: `Token ${tokenId}`,
+          purchase_price: price
+        });
 
-    // Check for token stealing mechanic
-    const allUsers = getAllUsers();
-    const usersWithToken = allUsers.filter(u => 
-      u.id !== user.id && 
-      u.tokens.some(t => t.tokenId === tokenId && t.quantity > 0)
-    );
-
-    if (usersWithToken.length > 0) {
-      // Random selection for stealing
-      const randomUser = usersWithToken[Math.floor(Math.random() * usersWithToken.length)];
-      const tokenToSteal = randomUser.tokens.find(t => t.tokenId === tokenId);
-      
-      if (tokenToSteal && tokenToSteal.quantity > 0) {
-        // Remove one token from random user
-        tokenToSteal.quantity -= 1;
-        if (tokenToSteal.quantity === 0) {
-          randomUser.tokens = randomUser.tokens.filter(t => t.tokenId !== tokenId);
-        }
-        
-        // Give them score as compensation
-        const compensationScore = price;
-        randomUser.score = (randomUser.score || 0) + compensationScore;
-        
-        updateUser(randomUser);
-        
-        // Notify about the stealing (this would be shown via toast in real implementation)
-        console.log(`User ${randomUser.name} lost 1 token and gained ${compensationScore} score points!`);
+      if (tokenError) {
+        console.error('Error saving token:', tokenError);
+        return false;
       }
+
+      // Add token to user's inventory
+      const existingToken = user.tokens.find(t => t.tokenId === tokenId);
+      const newTokens = [...user.tokens];
+      if (existingToken) {
+        existingToken.quantity += quantity;
+      } else {
+        newTokens.push({ tokenId, quantity });
+      }
+      
+      // Add score (value + 25% bonus)
+      const scoreGained = Math.floor(price * 1.25);
+      await addScore(scoreGained);
+      
+      const updatedUser = { 
+        ...user, 
+        tokens: newTokens
+      };
+      setUser(updatedUser);
+
+      // Check for token stealing mechanic
+      const allUsers = getAllUsers();
+      const usersWithToken = allUsers.filter(u => 
+        u.id !== user.id && 
+        u.tokens.some(t => t.tokenId === tokenId && t.quantity > 0)
+      );
+
+      if (usersWithToken.length > 0) {
+        // Random selection for stealing
+        const randomUser = usersWithToken[Math.floor(Math.random() * usersWithToken.length)];
+        const tokenToSteal = randomUser.tokens.find(t => t.tokenId === tokenId);
+        
+        if (tokenToSteal && tokenToSteal.quantity > 0) {
+          // Remove one token from random user
+          tokenToSteal.quantity -= 1;
+          if (tokenToSteal.quantity === 0) {
+            randomUser.tokens = randomUser.tokens.filter(t => t.tokenId !== tokenId);
+          }
+          
+          // Give them score as compensation
+          const compensationScore = price;
+          randomUser.score = (randomUser.score || 0) + compensationScore;
+          
+          updateUser(randomUser);
+          
+          // Notify about the stealing (this would be shown via toast in real implementation)
+          console.log(`User ${randomUser.name} lost 1 token and gained ${compensationScore} score points!`);
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error buying token:', error);
+      return false;
     }
-    
-    return true;
   };
 
   return (

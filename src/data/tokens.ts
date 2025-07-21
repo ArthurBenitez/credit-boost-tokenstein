@@ -18,6 +18,22 @@ export const tokens: Token[] = [
     image: "/images/cyberaugustus.png"
   },
   {
+    id: 7,
+    name: "Hadrian",
+    price: 16,
+    rarity: "Uncommon",
+    description: "Imperador construtor da famosa Muralha de Adriano. Token de entrada com boa rentabilidade.",
+    image: "/images/cyberaugustus.png"
+  },
+  {
+    id: 8,
+    name: "Diocletian",
+    price: 80,
+    rarity: "Epic", 
+    description: "Imperador que dividiu o império em tetrarquia. Compradores ganham benefícios especiais.",
+    image: "/images/cybertrajano.png"
+  },
+  {
     id: 3,
     name: "Nero",
     price: 40,

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, QrCode, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Loader2, QrCode, CheckCircle2, XCircle, Clock, Copy } from 'lucide-react';
 import { AbacatePayService } from '@/services/abacatePayService';
 import { PaymentData } from '@/types/token';
 import { useUser } from '@/contexts/UserContext';
@@ -285,6 +285,34 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose }) =
                 />
               </CardContent>
             </Card>
+
+            <div className="space-y-2">
+              <Label htmlFor="brcode" className="text-sm font-medium">Código PIX (Copiar e Colar)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  id="brcode"
+                  value={paymentData.brCode}
+                  readOnly
+                  className="bg-muted text-xs"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(paymentData.brCode);
+                    toast({
+                      title: "Código copiado!",
+                      description: "O código PIX foi copiado para a área de transferência.",
+                    });
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cole este código no seu app bancário para pagar
+              </p>
+            </div>
 
             <div className="text-sm space-y-2">
               <p>Valor: <span className="font-bold text-primary">R$ {amount}</span></p>
