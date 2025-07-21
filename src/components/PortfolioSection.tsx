@@ -102,7 +102,7 @@ export const PortfolioSection: React.FC = () => {
               const tokenProfitPercentage = ((tokenProfit / investedValue) * 100);
 
               return (
-                <Card key={token.id} className="bg-background border-border">
+                <Card key={`${token.id}-${userToken.tokenId}`} className="bg-background border-border">
                   <CardHeader>
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 rounded-full bg-gradient-primary p-0.5">

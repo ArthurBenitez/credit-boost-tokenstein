@@ -65,13 +65,25 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             .select('*')
             .eq('user_id', authUser.id);
 
+          // Group tokens by token_id and count quantities
+          const groupedTokens: { [key: string]: number } = {};
+          tokens?.forEach(token => {
+            const tokenId = parseInt(token.token_id);
+            groupedTokens[tokenId] = (groupedTokens[tokenId] || 0) + 1;
+          });
+
+          const userTokens = Object.entries(groupedTokens).map(([tokenId, quantity]) => ({
+            tokenId: parseInt(tokenId),
+            quantity
+          }));
+
           const userData: User = {
             id: authUser.id,
             name: profile.name || authUser.email!,
             email: authUser.email!,
             credits: credits?.credits || 0,
             score: scores?.score || 0,
-            tokens: tokens?.map(t => ({ tokenId: parseInt(t.token_id), quantity: 1 })) || [],
+            tokens: userTokens,
             cpf: '',
             cellphone: '',
             pixKey: ''
