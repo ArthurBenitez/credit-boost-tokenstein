@@ -8,11 +8,18 @@ import { TokenCard } from '@/components/TokenCard';
 import { PortfolioSection } from '@/components/PortfolioSection';
 import { ReferralSection } from '@/components/ReferralSection';
 import { TokenInventory } from '@/components/TokenInventory';
+import { NotificationSystem } from '@/components/NotificationSystem';
+import { AdminPanel } from '@/components/AdminPanel';
+import { PointsExchange } from '@/components/PointsExchange';
+import { CreditPurchase } from '@/components/CreditPurchase';
 import { Button } from '@/components/ui/button';
 import { tokens } from '@/data/tokens';
 
 const IndexContent = () => {
   const { user, loading } = useAuth();
+  
+  // Verificar se é admin
+  const isAdmin = user?.email === 'admin@imperium.com';
 
   if (loading) {
     return (
@@ -27,6 +34,21 @@ const IndexContent = () => {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Se for admin, mostrar painel admin
+  if (isAdmin) {
+    return (
+      <UserProvider>
+        <div className="min-h-screen bg-background text-foreground">
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h1 className="text-xl font-bold">SpritePay Admin</h1>
+            <Button onClick={() => window.location.reload()}>Voltar ao Site</Button>
+          </div>
+          <AdminPanel />
+        </div>
+      </UserProvider>
+    );
   }
 
   return (
@@ -87,11 +109,11 @@ const IndexContent = () => {
               <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 CONHEÇA NOSSOS{' '}
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
-                  TOKENS IMPERIAIS
+                  SPRITES IMPERIAIS
                 </span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Escolha entre os tokens imperiais disponíveis, cada um com diferentes características e rendimentos
+                Escolha entre os sprites imperiais disponíveis, cada um com diferentes características e rendimentos
               </p>
             </div>
             
@@ -113,7 +135,7 @@ const IndexContent = () => {
               <h2 className="text-4xl md:text-5xl font-bold mb-4">
                 COMO A{' '}
                 <span className="bg-gradient-primary bg-clip-text text-transparent">
-                  TOKENSTEIN
+                SPRITEPAY
                 </span>{' '}
                 FUNCIONA
               </h2>
@@ -134,9 +156,9 @@ const IndexContent = () => {
                 <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6">
                   2
                 </div>
-                <h3 className="text-xl font-bold mb-4">Compre Tokens</h3>
+                <h3 className="text-xl font-bold mb-4">Compre Sprites</h3>
                 <p className="text-muted-foreground">
-                  Escolha entre os tokens imperiais disponíveis, cada um com diferentes características e rendimentos.
+                  Escolha entre os sprites imperiais disponíveis, cada um com diferentes características e rendimentos.
                 </p>
               </div>
               
@@ -233,7 +255,7 @@ const IndexContent = () => {
                 </div>
                 <div className="text-left">
                   <p className="font-semibold">Junte-se a mais de 10.000 investidores</p>
-                  <p className="text-sm text-muted-foreground">que já estão lucrando com a Tokenstein</p>
+                  <p className="text-sm text-muted-foreground">que já estão lucrando com a SpritePay</p>
                 </div>
               </div>
             </div>
@@ -291,7 +313,7 @@ const IndexContent = () => {
                 <span className="text-white font-bold">T</span>
               </div>
               <h3 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                TOKENSTEIN
+                SPRITEPAY
               </h3>
             </div>
             <p className="text-muted-foreground">

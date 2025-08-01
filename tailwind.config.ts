@@ -20,12 +20,17 @@ export default {
 		extend: {
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-secondary': 'var(--gradient-secondary)',
 				'gradient-card': 'var(--gradient-card)',
 				'gradient-hero': 'var(--gradient-hero)',
+				'gradient-cyberpunk': 'var(--gradient-cyberpunk)',
 			},
 			boxShadow: {
 				'glow': 'var(--shadow-glow)',
 				'card': 'var(--shadow-card)',
+				'neon-pink': 'var(--shadow-neon-pink)',
+				'neon-blue': 'var(--shadow-neon-blue)',
+				'neon-purple': 'var(--shadow-neon-purple)',
 			},
 			transitionProperty: {
 				'smooth': 'var(--transition-smooth)',
@@ -66,6 +71,10 @@ export default {
 				},
 				success: 'hsl(var(--success))',
 				warning: 'hsl(var(--warning))',
+				'neon-pink': 'hsl(var(--neon-pink))',
+				'neon-blue': 'hsl(var(--neon-blue))',
+				'neon-purple': 'hsl(var(--neon-purple))',
+				'neon-gold': 'hsl(var(--neon-gold))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',

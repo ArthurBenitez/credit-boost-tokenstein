@@ -6,7 +6,7 @@ export const tokens: Token[] = [
     name: "Julius Caesar",
     price: 8,
     rarity: "Common",
-    description: "O pré fundador de Roma. Compre esse token para iniciar sua jornada e ganhar seus primeiros pontos.",
+    description: "O pré fundador de Roma. Compre esse sprite para iniciar sua jornada e ganhar seus primeiros pontos.",
     image: "/images/cyberjuliocesar.png"
   },
   {
@@ -14,7 +14,7 @@ export const tokens: Token[] = [
     name: "Augustus",
     price: 16,
     rarity: "Uncommon",
-    description: "Primeiro imperador de Roma, criando o período chamado Pax Romana. Esse é o token que rende mais rápido.",
+    description: "Primeiro imperador de Roma, criando o período chamado Pax Romana. Esse é o sprite que rende mais rápido.",
     image: "/images/cyberaugustus.png"
   },
   {
@@ -22,7 +22,7 @@ export const tokens: Token[] = [
     name: "Hadrian",
     price: 16,
     rarity: "Uncommon",
-    description: "Imperador construtor da famosa Muralha de Adriano. Token de entrada com boa rentabilidade.",
+    description: "Imperador construtor da famosa Muralha de Adriano. Sprite de entrada com boa rentabilidade.",
     image: "/images/cyberaugustus.png"
   },
   {
@@ -54,7 +54,7 @@ export const tokens: Token[] = [
     name: "Marcus Aurelius",
     price: 400,
     rarity: "Legendary",
-    description: "Imperador e filósofo, criador do estoicismo. Esse token rende 50 reais de lucro ao valorizar.",
+    description: "Imperador e filósofo, criador do estoicismo. Esse sprite rende 50 reais de lucro ao valorizar.",
     image: "/images/cyberaurelio.png"
   },
   {
@@ -62,7 +62,7 @@ export const tokens: Token[] = [
     name: "Constantine",
     price: 800,
     rarity: "Legendary",
-    description: "Primeiro imperador cristão de Roma. Token exclusivo com benefícios únicos.",
+    description: "Primeiro imperador cristão de Roma. Sprite exclusivo com benefícios únicos.",
     image: "/images/cyberconstantine.png"
   }
 ];

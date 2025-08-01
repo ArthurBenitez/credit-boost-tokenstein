@@ -17,17 +17,22 @@ All colors MUST be HSL.
     --popover: 220 13% 9%;
     --popover-foreground: 220 9% 97%;
 
-    --primary: 185 100% 50%;
+    --primary: 315 100% 70%; /* Rosa neon */
     --primary-foreground: 220 13% 9%;
 
-    --secondary: 220 13% 15%;
+    --secondary: 265 85% 65%; /* Roxo neon */
     --secondary-foreground: 220 9% 97%;
 
     --muted: 220 13% 15%;
     --muted-foreground: 220 9% 70%;
 
-    --accent: 275 83% 60%;
+    --accent: 186 100% 55%; /* Azul elétrico */
     --accent-foreground: 220 9% 97%;
+    
+    --neon-pink: 315 100% 70%;
+    --neon-blue: 186 100% 55%;
+    --neon-purple: 265 85% 65%;
+    --neon-gold: 45 100% 60%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -39,14 +44,19 @@ All colors MUST be HSL.
     --success: 142 69% 58%;
     --warning: 38 92% 50%;
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(185 100% 50%), hsl(275 83% 60%));
-    --gradient-card: linear-gradient(145deg, hsl(220 13% 12%), hsl(220 13% 15%));
-    --gradient-hero: linear-gradient(120deg, hsl(220 13% 9%) 0%, hsl(220 13% 12%) 50%, hsl(220 13% 9%) 100%);
+    /* Gradients Cyberpunk */
+    --gradient-primary: linear-gradient(135deg, hsl(315 100% 70%), hsl(186 100% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(265 85% 65%), hsl(315 100% 70%));
+    --gradient-card: linear-gradient(145deg, hsl(220 13% 8%), hsl(220 13% 12%));
+    --gradient-hero: linear-gradient(120deg, hsl(220 13% 6%) 0%, hsl(220 13% 10%) 50%, hsl(220 13% 6%) 100%);
+    --gradient-cyberpunk: linear-gradient(45deg, hsl(315 100% 70%), hsl(186 100% 55%), hsl(265 85% 65%));
     
-    /* Shadows */
-    --shadow-glow: 0 0 40px hsl(185 100% 50% / 0.3);
-    --shadow-card: 0 8px 32px hsl(220 13% 5% / 0.6);
+    /* Shadows Cyberpunk */
+    --shadow-glow: 0 0 40px hsl(315 100% 70% / 0.4);
+    --shadow-card: 0 8px 32px hsl(220 13% 3% / 0.8);
+    --shadow-neon-pink: 0 0 20px hsl(315 100% 70% / 0.5);
+    --shadow-neon-blue: 0 0 20px hsl(186 100% 55% / 0.5);
+    --shadow-neon-purple: 0 0 20px hsl(265 85% 65% / 0.5);
     
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
